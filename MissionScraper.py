@@ -76,7 +76,18 @@ def handle_mission(mission):
     print('FOUND A MISSION')
     print(type(mission))
     print(mission.attrs)
-    print(mission.get_text())
+    # print(mission.get_text())
+    # mission_row is a ResultSet object
+    mission_row = mission.select('div[class = "mission-row"]')
+    mission_name = mission_row[0].getText()
+    mission_name = mission_name.strip()
+    mission_details = mission.select('div[class = "mission-details"]')
+
+    mission_description = mission_details[0].select('div[class = "description"]')
+    mission_description = mission_description.strip()
+
+    mission_objectives = mission_details[0].select('div[class = "objectives"]')
+    mission_rewards = mission_details[0].select('div[class = "rewards"]')
 
 
 def main():
