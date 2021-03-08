@@ -20,6 +20,20 @@ def download_page():
     driver = webdriver.Firefox()
     driver.implicitly_wait(10) # seconds
     driver.get(url)
+    junk = input('press enter when you are logged in ')
+
+    missions_link = driver.find_element_by_link_text('MISSIONS')
+    missions_link.click()
+    regular_missions_link = driver.find_element_by_link_text('Regular Missions')
+    regular_missions_link.click()
+    page = driver.page_source  # returns a string
+    # open the file in write binary mode ('wb'), and write bytes to it
+    # otherwise we may get a UnicodeEncodeError
+    page_bytes = page.encode('utf-8')
+    newFile = open('page.html', 'wb')
+    newFile.write(page_bytes)
+    newFile.close()
+
 
 def main():
    download_page()
