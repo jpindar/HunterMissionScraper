@@ -56,20 +56,9 @@ def parse_page():
     # note that this returns a 'bs4.element.ResultSet even if there's only 1 tag in it
     # the Tag we're looking for is stuff[0]
 
-    # text_data = stuff[0].get_text()  # a string
-    # print(type(text_data))
-    # newFile = open('output.txt', 'wb')
-    # newFile.write(text_data.encode('utf-8'))
-    # newFile.close()
-    # sort of works but result has lots of whitespace etc.
-    # better to parse it properly
-
-    for child in stuff[0].descendants:
-        if type(child) == bs4.element.Tag: #  ignore whitespace, comments etc.
-            print(child.attrs)
-            if 'class' in child.attrs:
-                if "mission-container" in child['class']:
-                    handle_mission(child)
+    mission_containers = stuff[0].select('div[class = "mission-container"]')
+    for mission in mission_containers:
+        handle_mission(mission)
 
 
 def handle_mission(mission):
