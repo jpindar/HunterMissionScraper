@@ -9,6 +9,7 @@ mission and copy & paste the descriptions into a text editor.
 
 """
 from selenium import webdriver
+import selenium.common.exceptions
 
 # r for raw means we don't have to escape the backslashes
 filename = r"E:\Dropbox\_PROJECTS\Python\scraping1\page.html"
@@ -20,7 +21,13 @@ def download_page():
     driver = webdriver.Firefox()
     driver.implicitly_wait(10) # seconds
     driver.get(url)
-    junk = input('press enter when you are logged in ')
+    logged_in = False
+    while not logged_in:
+        try:
+            object_that_appears_after_login = driver.find_element_by_class_name('user-name')
+            logged_in = True
+        except selenium.common.exceptions.NoSuchElementException:
+            pass
 
     missions_link = driver.find_element_by_link_text('MISSIONS')
     missions_link.click()
