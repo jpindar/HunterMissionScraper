@@ -73,21 +73,28 @@ def parse_page():
 
 
 def handle_mission(mission):
-    print('FOUND A MISSION')
-    print(type(mission))
-    print(mission.attrs)
-    # print(mission.get_text())
-    # mission_row is a ResultSet object
+    print('MISSION')
+
     mission_row = mission.select('div[class = "mission-row"]')
-    mission_name = mission_row[0].getText()
-    mission_name = mission_name.strip()
+    name_text = mission_row[0].getText().strip()
+
     mission_details = mission.select('div[class = "mission-details"]')
 
     mission_description = mission_details[0].select('div[class = "description"]')
-    mission_description = mission_description.strip()
+    description_text = mission_description[0].get_text().strip()
 
     mission_objectives = mission_details[0].select('div[class = "objectives"]')
+
+    objective_list = mission_objectives[0].find_all('li')
+    for objective in objective_list:
+       objective_text = objective.get_text().strip()
+       objective_completed = (objective.i['class'] == "icon-check")
+
     mission_rewards = mission_details[0].select('div[class = "rewards"]')
+    reward_list = mission_rewards[0].find_all('li')
+    # the html is structured as a list of rewards, although I've never seen more than one
+    for reward in reward_list:
+        reward_text = reward.get_text().strip()
 
 
 def main():
