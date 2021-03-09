@@ -56,9 +56,17 @@ def parse_page():
     # note that this returns a 'bs4.element.ResultSet even if there's only 1 tag in it
     # the Tag we're looking for is stuff[0]
 
+    print('ACTIVE MISSIONS\n')
     mission_containers = stuff[0].select('div[class = "mission-container"]')
     for mission in mission_containers:
         handle_mission(mission)
+
+    print('AVAILABLE MISSIONS\n')
+    stuff = soup.select('div[id = "#available-missions-container"]')
+    mission_containers = stuff[0].select('div[class = "mission-container"]')
+    for mission in mission_containers:
+        handle_mission(mission)
+
 
 
 def handle_mission(mission):
