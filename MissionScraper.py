@@ -96,7 +96,7 @@ def handle_mission(mission):
     for objective in objective_list:
        objective_text = objective.get_text()
        objective_text = " ".join(objective_text.split()) + "\n"
-       objective_completed = (objective.i['class'] == "icon-check")
+       objective_completed = (objective.i['class'] == ["icon-check"])
        if objective_completed:
            newFile.write(b'[x] ')
        else:
