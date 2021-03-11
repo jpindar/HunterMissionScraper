@@ -78,7 +78,7 @@ def parse_page():
 def handle_mission(mission):
 
     mission_row = mission.select('div[class = "mission-row"]')
-    name_text = 'MISSION: ' + mission_row[0].getText().strip() + '\n\n'
+    name_text = 'MISSION: ' + mission_row[0].getText().strip() + '\n'
     buffer = name_text.encode()
 
     mission_details = mission.select('div[class = "mission-details"]')
@@ -91,9 +91,9 @@ def handle_mission(mission):
     mission_objectives = mission_details[0].select('div[class = "objectives"]')
     objective_list = mission_objectives[0].find_all('li')
     if len(objective_list) > 1:
-        buffer += b'\nObjectives:\n'
+        buffer += b'Objectives:\n'
     else:
-        buffer += b'\nObjective:\n'
+        buffer += b'Objective:\n'
 
     for objective in objective_list:
         objective_text = objective.get_text()
@@ -105,14 +105,14 @@ def handle_mission(mission):
             buffer += b'[ ] '
         buffer += objective_text.encode()
 
-    buffer += b'\nReward: '
+    buffer += b'Reward: '
     mission_rewards = mission_details[0].select('div[class = "rewards"]')
     reward_list = mission_rewards[0].find_all('li')
     # the html is structured as a list of rewards, although I've never seen more than one
     for reward in reward_list:
         reward_text = reward.get_text().strip()
         buffer += reward_text.encode()
-    buffer += b'\n\n\n\n'
+    buffer += b'\n\n'
     return buffer
 
 
