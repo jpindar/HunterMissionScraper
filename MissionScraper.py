@@ -17,6 +17,8 @@ filename = r"E:\Dropbox\_PROJECTS\Python\scraping1\page.html"
 url = "https://www.thehunter.com"
 output_filename = r"E:\Dropbox\_PROJECTS\Python\scraping1\missions.txt"
 newFile = None
+output_buffer = b""
+
 
 def download_page():
     driver = webdriver.Firefox()
@@ -44,7 +46,7 @@ def download_page():
 
 
 def parse_page():
-    global newFile
+    global output_buffer
 
     pageFile = open(filename, 'rb')
     page = pageFile.read()
@@ -58,13 +60,12 @@ def parse_page():
     # note that this returns a 'bs4.element.ResultSet even if there's only 1 tag in it
     # the Tag we're looking for is stuff[0]
 
-    newFile.write(b'ACTIVE MISSIONS\n\n')
-
+    output_buffer = b'ACTIVE MISSIONS\n\n'
     mission_containers = stuff[0].select('div[class = "mission-container"]')
     for mission in mission_containers:
         handle_mission(mission)
 
-    newFile.write(b'\n\nAVAILABLE MISSIONS\n\n')
+    output_buffer += b'\n\nAVAILABLE MISSIONS\n\n'
     stuff = soup.select('div[id = "#available-missions-container"]')
     mission_containers = stuff[0].select('div[class = "mission-container"]')
     for mission in mission_containers:
@@ -73,51 +74,52 @@ def parse_page():
 
 
 def handle_mission(mission):
-    global newFile
+    global output_buffer
 
     mission_row = mission.select('div[class = "mission-row"]')
     name_text = 'MISSION: ' + mission_row[0].getText().strip() + '\n\n'
-    newFile.write(name_text.encode())
+    output_buffer += name_text.encode()
 
     mission_details = mission.select('div[class = "mission-details"]')
 
     mission_description = mission_details[0].select('div[class = "description"]')
     description_text = mission_description[0].get_text()
     description_text = " ".join(description_text.split()) + '\n'
-    newFile.write(description_text.encode())
+    output_buffer += description_text.encode()
 
     mission_objectives = mission_details[0].select('div[class = "objectives"]')
     objective_list = mission_objectives[0].find_all('li')
     if len(objective_list) > 1:
-        newFile.write(b'\nObjectives:\n')
+        output_buffer += b'\nObjectives:\n'
     else:
-        newFile.write(b'\nObjective:\n')
+        output_buffer += b'\nObjective:\n'
 
     for objective in objective_list:
        objective_text = objective.get_text()
        objective_text = " ".join(objective_text.split()) + "\n"
        objective_completed = (objective.i['class'] == ["icon-check"])
        if objective_completed:
-           newFile.write(b'[x] ')
+           output_buffer += b'[x] '
        else:
-           newFile.write(b'[ ] ')
-       newFile.write(objective_text.encode())
+           output_buffer += b'[ ] '
+       output_buffer += objective_text.encode()
 
-    newFile.write(b'\nReward: ')
+    output_buffer += b'\nReward: '
     mission_rewards = mission_details[0].select('div[class = "rewards"]')
     reward_list = mission_rewards[0].find_all('li')
     # the html is structured as a list of rewards, although I've never seen more than one
     for reward in reward_list:
         reward_text = reward.get_text().strip()
-        newFile.write(reward_text.encode())
-    newFile.write(b'\n\n\n\n')
+        output_buffer += reward_text.encode()
+    output_buffer += b'\n\n\n\n'
 
 
 def main():
    global newFile
    # download_page()
-   newFile = open(output_filename, 'wb')
    parse_page()
+   newFile = open(output_filename, 'wb')
+   newFile.write(output_buffer)
    newFile.close()
 
 if __name__ == '__main__':
