@@ -18,7 +18,7 @@ url = "https://www.thehunter.com"
 output_filename = r"E:\Dropbox\_PROJECTS\Python\scraping1\missions.txt"
 newFile = None
 output_buffer = b""
-
+missions = []
 
 def download_page():
     driver = webdriver.Firefox()
@@ -54,64 +54,66 @@ def parse_page():
 
     # html.parser is the default parser, but if you don't specify it you get a warning
     soup = bs4.BeautifulSoup(page, 'html.parser')
-    # the id we're looking for starts with a # sign, so we can't use the shorter syntax
+
+    # the ids we're looking for starts with a # sign, so we can't use the shorter syntax
     # stuff = soup.select("##active-missions-container")   # select by id doesn't work for this one
-    stuff = soup.select('div[id = "#active-missions-container"]')
-    # note that this returns a 'bs4.element.ResultSet even if there's only 1 tag in it
+
+    # note that select() returns a 'bs4.element.ResultSet even if there's only 1 tag in it
     # the Tag we're looking for is stuff[0]
 
     output_buffer = b'ACTIVE MISSIONS\n\n'
+    stuff = soup.select('div[id = "#active-missions-container"]')
     mission_containers = stuff[0].select('div[class = "mission-container"]')
     for mission in mission_containers:
-        handle_mission(mission)
+        output_buffer += handle_mission(mission)
 
     output_buffer += b'\n\nAVAILABLE MISSIONS\n\n'
     stuff = soup.select('div[id = "#available-missions-container"]')
     mission_containers = stuff[0].select('div[class = "mission-container"]')
     for mission in mission_containers:
-        handle_mission(mission)
+        output_buffer += handle_mission(mission)
 
 
 
 def handle_mission(mission):
-    global output_buffer
 
     mission_row = mission.select('div[class = "mission-row"]')
     name_text = 'MISSION: ' + mission_row[0].getText().strip() + '\n\n'
-    output_buffer += name_text.encode()
+    buffer = name_text.encode()
 
     mission_details = mission.select('div[class = "mission-details"]')
 
     mission_description = mission_details[0].select('div[class = "description"]')
     description_text = mission_description[0].get_text()
     description_text = " ".join(description_text.split()) + '\n'
-    output_buffer += description_text.encode()
+    buffer += description_text.encode()
 
     mission_objectives = mission_details[0].select('div[class = "objectives"]')
     objective_list = mission_objectives[0].find_all('li')
     if len(objective_list) > 1:
-        output_buffer += b'\nObjectives:\n'
+        buffer += b'\nObjectives:\n'
     else:
-        output_buffer += b'\nObjective:\n'
+        buffer += b'\nObjective:\n'
 
     for objective in objective_list:
-       objective_text = objective.get_text()
-       objective_text = " ".join(objective_text.split()) + "\n"
-       objective_completed = (objective.i['class'] == ["icon-check"])
-       if objective_completed:
-           output_buffer += b'[x] '
-       else:
-           output_buffer += b'[ ] '
-       output_buffer += objective_text.encode()
+        objective_text = objective.get_text()
+        objective_text = " ".join(objective_text.split()) + "\n"
+        objective_completed = (objective.i['class'] == ["icon-check"])
+        if objective_completed:
+            buffer += b'[x] '
+        else:
+            buffer += b'[ ] '
+        buffer += objective_text.encode()
 
-    output_buffer += b'\nReward: '
+    buffer += b'\nReward: '
     mission_rewards = mission_details[0].select('div[class = "rewards"]')
     reward_list = mission_rewards[0].find_all('li')
     # the html is structured as a list of rewards, although I've never seen more than one
     for reward in reward_list:
         reward_text = reward.get_text().strip()
-        output_buffer += reward_text.encode()
-    output_buffer += b'\n\n\n\n'
+        buffer += reward_text.encode()
+    buffer += b'\n\n\n\n'
+    return buffer
 
 
 def main():
