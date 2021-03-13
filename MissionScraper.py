@@ -33,52 +33,54 @@ class Mission():
 
 
     def get_text(self):
-        s = self.name
-        s += self.description
-        s += self.objectives
+        s = b'MISSION: ' + self.name + b'\n'
+        s += self.description + b'\n'
+        if len(self.objectives) > 1:
+            s += b'Objectives:\n'
+        else:
+            s += b'Objective:\n'
+        for objective in self.objectives:
+            if objective[0]:
+                s += b'[x] '
+            else:
+                s += b'[ ] '
+            s += objective[1]
+            s += b'\n'
+        s += b'Reward: '
         s += self.reward
-        s += b"\n\n"
+        s += b'\n\n'
         return s
 
     def scrape(self, m):
         mission_row = m.select('div[class = "mission-row"]')
-        name_text = 'MISSION: ' + mission_row[0].getText().strip() + '\n'
+        name_text = mission_row[0].getText().strip()
         self.name = name_text.encode()
-
         mission_details = m.select('div[class = "mission-details"]')
 
         mission_description = mission_details[0].select('div[class = "description"]')
         description_text = mission_description[0].get_text()
-        description_text = " ".join(description_text.split()) + '\n' # remove excess whitespace
+        description_text = " ".join(description_text.split()) # remove excess whitespace
         self.description = description_text.encode()
 
         mission_objectives = mission_details[0].select('div[class = "objectives"]')
         objective_list = mission_objectives[0].find_all('li')
-        if len(objective_list) > 1:
-            buffer = b'Objectives:\n'
-        else:
-            buffer = b'Objective:\n'
 
+        objectives = []
         for objective in objective_list:
-            objective_text = objective.get_text()
-            objective_text = " ".join(objective_text.split()) + "\n"
             objective_completed = (objective.i['class'] == ["icon-check"])
-            if objective_completed:
-                buffer += b'[x] '
-            else:
-                buffer += b'[ ] '
-            buffer += objective_text.encode()
+            objective_text = objective.get_text()
+            objective_text = " ".join(objective_text.split())
+            objectives.append([objective_completed, objective_text.encode()])
 
-        self.objectives = buffer
+        self.objectives = objectives
 
-        buffer = b'Reward: '
+        buffer = b""
         mission_rewards = mission_details[0].select('div[class = "rewards"]')
         reward_list = mission_rewards[0].find_all('li')
         # the html is structured as a list of rewards, although I've never seen more than one
         for reward in reward_list:
             reward_text = reward.get_text().strip()
             buffer += reward_text.encode()
-        buffer += b'\n\n'
         self.reward = buffer
 
     """
