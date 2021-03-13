@@ -16,9 +16,94 @@ import bs4
 filename = r"E:\Dropbox\_PROJECTS\Python\scraping1\page.html"
 url = "https://www.thehunter.com"
 output_filename = r"E:\Dropbox\_PROJECTS\Python\scraping1\missions.txt"
-newFile = None
-output_buffer = b""
-missions = []
+mission_list = []
+
+
+class Mission():
+    def __init__(self, m):
+        #self.name = b""
+        #self.description = b""
+        #self.objectives = b""
+        #self.reward = b""
+        self.active = False
+        self.ignore = False
+        self.species = []
+        self.weapons = []
+        self.scrape(m)
+
+
+    def get_text(self):
+        s = self.name
+        s += self.description
+        s += self.objectives
+        s += self.reward
+        s += b"\n\n"
+        return s
+
+    def scrape(self, m):
+        mission_row = m.select('div[class = "mission-row"]')
+        name_text = 'MISSION: ' + mission_row[0].getText().strip() + '\n'
+        self.name = name_text.encode()
+
+        mission_details = m.select('div[class = "mission-details"]')
+
+        mission_description = mission_details[0].select('div[class = "description"]')
+        description_text = mission_description[0].get_text()
+        description_text = " ".join(description_text.split()) + '\n' # remove excess whitespace
+        self.description = description_text.encode()
+
+        mission_objectives = mission_details[0].select('div[class = "objectives"]')
+        objective_list = mission_objectives[0].find_all('li')
+        if len(objective_list) > 1:
+            buffer = b'Objectives:\n'
+        else:
+            buffer = b'Objective:\n'
+
+        for objective in objective_list:
+            objective_text = objective.get_text()
+            objective_text = " ".join(objective_text.split()) + "\n"
+            objective_completed = (objective.i['class'] == ["icon-check"])
+            if objective_completed:
+                buffer += b'[x] '
+            else:
+                buffer += b'[ ] '
+            buffer += objective_text.encode()
+
+        self.objectives = buffer
+
+        buffer = b'Reward: '
+        mission_rewards = mission_details[0].select('div[class = "rewards"]')
+        reward_list = mission_rewards[0].find_all('li')
+        # the html is structured as a list of rewards, although I've never seen more than one
+        for reward in reward_list:
+            reward_text = reward.get_text().strip()
+            buffer += reward_text.encode()
+        buffer += b'\n\n'
+        self.reward = buffer
+
+    """
+    def classify(self):
+         # the space after 'dall' is needed because one of the other missions used the word 'dally'
+         # TODO: handle this properly
+        whiterime_keywords = [b'Whiterime', b'polar',b'arctic',b'sitka', 'snowshoe', b'dall ']
+        timbergold_keywords = [b'rocky',b'wolf',b'wolves',b'puma',b'puma',b'bighorn',b'grizzly']
+        whiterime_missions = []
+        timbergold_missions = []
+
+        mission_data_lowercase = mission_data.lower()
+        for keyword in whiterime_keywords:
+            if keyword in mission_data_lowercase:
+               whiterime_missions.append(mission_data)
+               break
+
+        for keyword in timbergold_keywords:
+            if keyword in mission_data_lowercase:
+               timbergold_missions.append(mission_data)
+               break
+    """
+
+
+
 
 def download_page():
     driver = webdriver.Firefox()
@@ -46,8 +131,6 @@ def download_page():
 
 
 def parse_page():
-    global output_buffer
-
     pageFile = open(filename, 'rb')
     page = pageFile.read()
     pageFile.close()
@@ -64,65 +147,38 @@ def parse_page():
     output_buffer = b'ACTIVE MISSIONS\n\n'
     stuff = soup.select('div[id = "#active-missions-container"]')
     mission_containers = stuff[0].select('div[class = "mission-container"]')
-    for mission in mission_containers:
-        output_buffer += handle_mission(mission)
+    for m in mission_containers:
+        this_mission = Mission(m)
+        this_mission.active = True
+        mission_list.append(this_mission)
 
     output_buffer += b'\n\nAVAILABLE MISSIONS\n\n'
     stuff = soup.select('div[id = "#available-missions-container"]')
     mission_containers = stuff[0].select('div[class = "mission-container"]')
-    for mission in mission_containers:
-        output_buffer += handle_mission(mission)
+    for m in mission_containers:
+        this_mission = Mission(m)
+        this_mission.active = False
+        mission_list.append(this_mission)
 
 
-
-def handle_mission(mission):
-
-    mission_row = mission.select('div[class = "mission-row"]')
-    name_text = 'MISSION: ' + mission_row[0].getText().strip() + '\n'
-    buffer = name_text.encode()
-
-    mission_details = mission.select('div[class = "mission-details"]')
-
-    mission_description = mission_details[0].select('div[class = "description"]')
-    description_text = mission_description[0].get_text()
-    description_text = " ".join(description_text.split()) + '\n'
-    buffer += description_text.encode()
-
-    mission_objectives = mission_details[0].select('div[class = "objectives"]')
-    objective_list = mission_objectives[0].find_all('li')
-    if len(objective_list) > 1:
-        buffer += b'Objectives:\n'
-    else:
-        buffer += b'Objective:\n'
-
-    for objective in objective_list:
-        objective_text = objective.get_text()
-        objective_text = " ".join(objective_text.split()) + "\n"
-        objective_completed = (objective.i['class'] == ["icon-check"])
-        if objective_completed:
-            buffer += b'[x] '
-        else:
-            buffer += b'[ ] '
-        buffer += objective_text.encode()
-
-    buffer += b'Reward: '
-    mission_rewards = mission_details[0].select('div[class = "rewards"]')
-    reward_list = mission_rewards[0].find_all('li')
-    # the html is structured as a list of rewards, although I've never seen more than one
-    for reward in reward_list:
-        reward_text = reward.get_text().strip()
-        buffer += reward_text.encode()
-    buffer += b'\n\n'
-    return buffer
 
 
 def main():
-   global newFile
-   # download_page()
-   parse_page()
-   newFile = open(output_filename, 'wb')
-   newFile.write(output_buffer)
-   newFile.close()
+    # download_page()
+    parse_page()
+
+    active_missions = True
+    buffer  = b"ACTIVE MISSIONS\n\n"
+    for m in mission_list:
+        if active_missions and m.active == False:
+            buffer += b"\n\nAVALIABLE MISSIONS\n\n"
+            active_missions = False
+        buffer += m.get_text()
+        buffer += b"\n\n"
+
+    outputFile = open(output_filename, 'wb')
+    outputFile.write(buffer)
+    outputFile.close()
 
 if __name__ == '__main__':
     main()
