@@ -13,7 +13,7 @@ import selenium.common.exceptions
 import bs4
 
 # r for raw means we don't have to escape the backslashes
-filename = r"E:\Dropbox\_PROJECTS\Python\scraping1\page.html"
+page_filename = r"E:\Dropbox\_PROJECTS\Python\scraping1\page.html"
 url = "https://www.thehunter.com"
 output_filename = r"E:\Dropbox\_PROJECTS\Python\scraping1\missions.txt"
 mission_list = []
@@ -21,10 +21,6 @@ mission_list = []
 
 class Mission():
     def __init__(self, m):
-        #self.name = b""
-        #self.description = b""
-        #self.objectives = b""
-        #self.reward = b""
         self.active = False
         self.ignore = False
         self.species = []
@@ -83,26 +79,6 @@ class Mission():
             buffer += reward_text.encode()
         self.reward = buffer
 
-    """
-    def classify(self):
-         # the space after 'dall' is needed because one of the other missions used the word 'dally'
-         # TODO: handle this properly
-        whiterime_keywords = [b'Whiterime', b'polar',b'arctic',b'sitka', 'snowshoe', b'dall ']
-        timbergold_keywords = [b'rocky',b'wolf',b'wolves',b'puma',b'puma',b'bighorn',b'grizzly']
-        whiterime_missions = []
-        timbergold_missions = []
-
-        mission_data_lowercase = mission_data.lower()
-        for keyword in whiterime_keywords:
-            if keyword in mission_data_lowercase:
-               whiterime_missions.append(mission_data)
-               break
-
-        for keyword in timbergold_keywords:
-            if keyword in mission_data_lowercase:
-               timbergold_missions.append(mission_data)
-               break
-    """
 
 
 
@@ -127,13 +103,13 @@ def download_page():
     # open the file in write binary mode ('wb'), and write bytes to it
     # otherwise we may get a UnicodeEncodeError
     page_bytes = page.encode('utf-8')
-    pageFile = open('page.html', 'wb')
+    pageFile = open(page_filename, 'wb')
     pageFile.write(page_bytes)
     pageFile.close()
 
 
 def parse_page():
-    pageFile = open(filename, 'rb')
+    pageFile = open(page_filename, 'rb')
     page = pageFile.read()
     pageFile.close()
 
@@ -166,7 +142,7 @@ def parse_page():
 
 
 def main():
-    # download_page()
+    download_page()
     parse_page()
 
     active_missions = True
