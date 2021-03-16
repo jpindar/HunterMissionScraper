@@ -17,7 +17,11 @@ page_filename = r"E:\Dropbox\_PROJECTS\Python\scraping1\page.html"
 url = "https://www.thehunter.com"
 output_filename = r"E:\Dropbox\_PROJECTS\Python\scraping1\missions.txt"
 mission_list = []
-
+block_list = ['Straight Flush', 'Police Lineup', 'Mallard Hunting: Age Old Pastime',
+'In the Swamps, They Roam', 'Alright Then: Prove It', 'The Budgie Who Could', 'Retribution Will Follow',
+'Dying To Impress', 'Uninvited Guests', 'Varmint Hunting', 'Mallard', '.45-70', '.44 Magnum', '.270',
+ '12GA side by side', 'Snakebite', 'Blaser','Ptarmigan', '.50 Cap Lock Muzzleloader', 'Anschütz',
+ 'Tenpoint','Aimpoint', 'Break-Action Rifle','.50 conical bullet', 'Longbow', 'Break Action Rifle']
 
 class Mission():
     def __init__(self, m):
@@ -26,9 +30,9 @@ class Mission():
         self.species = []
         self.weapons = []
         self.scrape(m)
+        self.format()
 
-
-    def get_text(self):
+    def format(self):
         s = b'MISSION: ' + self.name + b'\n'
         s += self.description + b'\n'
         if len(self.objectives) > 1:
@@ -45,7 +49,8 @@ class Mission():
         s += b'Reward: '
         s += self.reward
         s += b'\n\n'
-        return s
+        self.text = s
+
 
     def scrape(self, m):
         mission_row = m.select('div[class = "mission-row"]')
@@ -139,6 +144,13 @@ def parse_page():
         mission_list.append(this_mission)
 
 
+def is_blocked(mission):
+    m = mission.text
+    m = m.lower()
+    for b in block_list:
+       if b.lower().encode() in m:
+           return True
+    return False
 
 
 def main():
@@ -148,11 +160,12 @@ def main():
     active_missions = True
     buffer  = b"ACTIVE MISSIONS\n\n"
     for m in mission_list:
-        if active_missions and m.active == False:
-            buffer += b"\n\nAVALIABLE MISSIONS\n\n"
-            active_missions = False
-        buffer += m.get_text()
-        buffer += b"\n\n"
+        if not is_blocked(m):
+            if active_missions and m.active == False:
+                buffer += b"\n\nAVALIABLE MISSIONS\n\n"
+                active_missions = False
+            buffer += m.text
+            buffer += b"\n\n"
 
     outputFile = open(output_filename, 'wb')
     outputFile.write(buffer)
