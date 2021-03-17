@@ -127,7 +127,6 @@ def parse_page():
     # note that select() returns a 'bs4.element.ResultSet even if there's only 1 tag in it
     # the Tag we're looking for is stuff[0]
 
-    output_buffer = b'ACTIVE MISSIONS\n\n'
     stuff = soup.select('div[id = "#active-missions-container"]')
     mission_containers = stuff[0].select('div[class = "mission-container"]')
     for m in mission_containers:
@@ -135,7 +134,6 @@ def parse_page():
         this_mission.active = True
         mission_list.append(this_mission)
 
-    output_buffer += b'\n\nAVAILABLE MISSIONS\n\n'
     stuff = soup.select('div[id = "#available-missions-container"]')
     mission_containers = stuff[0].select('div[class = "mission-container"]')
     for m in mission_containers:
@@ -160,10 +158,10 @@ def main():
     active_missions = True
     buffer  = b"ACTIVE MISSIONS\n\n"
     for m in mission_list:
+        if active_missions and m.active == False:
+            buffer += b"\n\nAVALIABLE MISSIONS\n\n"
+            active_missions = False
         if not is_blocked(m):
-            if active_missions and m.active == False:
-                buffer += b"\n\nAVALIABLE MISSIONS\n\n"
-                active_missions = False
             buffer += m.text
             buffer += b"\n\n"
 
