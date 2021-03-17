@@ -16,12 +16,10 @@ import bs4
 page_filename = r"E:\Dropbox\_PROJECTS\Python\scraping1\page.html"
 url = "https://www.thehunter.com"
 output_filename = r"E:\Dropbox\_PROJECTS\Python\scraping1\missions.txt"
+config_filename = r"E:\Dropbox\_PROJECTS\Python\scraping1\config.txt"
+
 mission_list = []
-block_list = ['Straight Flush', 'Police Lineup', 'Mallard Hunting: Age Old Pastime',
-'In the Swamps, They Roam', 'Alright Then: Prove It', 'The Budgie Who Could', 'Retribution Will Follow',
-'Dying To Impress', 'Uninvited Guests', 'Varmint Hunting', 'Mallard', '.45-70', '.44 Magnum', '.270',
- '12GA side by side', 'Snakebite', 'Blaser','Ptarmigan', '.50 Cap Lock Muzzleloader', 'Anschütz',
- 'Tenpoint','Aimpoint', 'Break-Action Rifle','.50 conical bullet', 'Longbow', 'Break Action Rifle']
+block_list = []
 
 class Mission():
     def __init__(self, m):
@@ -117,7 +115,6 @@ def parse_page():
     pageFile = open(page_filename, 'rb')
     page = pageFile.read()
     pageFile.close()
-
     # html.parser is the default parser, but if you don't specify it you get a warning
     soup = bs4.BeautifulSoup(page, 'html.parser')
 
@@ -146,14 +143,25 @@ def is_blocked(mission):
     m = mission.text
     m = m.lower()
     for b in block_list:
-       if b.lower().encode() in m:
+       b = b.encode()
+       if b in m:
            return True
     return False
 
 
 def main():
-    download_page()
+    # download_page()
     parse_page()
+
+    configFile = open(config_filename, 'rb')
+    with configFile as f:
+        for x in f:
+            y = x.decode()
+            y = y.lower()
+            y = y.strip()
+            y =y.strip("'")
+            y =y.strip('"')
+            block_list.append(y)
 
     active_missions = True
     buffer  = b"ACTIVE MISSIONS\n\n"
