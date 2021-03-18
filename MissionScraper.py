@@ -43,7 +43,13 @@ class Mission():
             else:
                 s += '[ ] '
             s += objective[1] + '\n'
-        s += 'Reward: ' + self.reward + '\n\n'
+        if len(self.rewards) > 1:
+            s += 'Rewards:\n '
+        else:
+            s += 'Reward:\n '
+        for reward in self.rewards:
+           s += "    " +  reward + '\n'
+        s += '\n\n'
         self.text = s
 
     def scrape(self, m):
@@ -67,14 +73,13 @@ class Mission():
 
         self.objectives = objectives
 
-        self.reward = ""
         mission_rewards = mission_details[0].select('div[class = "rewards"]')
         reward_list = mission_rewards[0].find_all('li')
-        # the html is structured as a list of rewards, although I've never seen more than one
+        # the html is structured as a list of rewards, although there is rarely more than 1
+        self.rewards = []
         for reward in reward_list:
-            self.reward += reward.get_text().strip()
-
-
+            reward_text = reward.get_text().strip()
+            self.rewards.append(reward_text)
 
 
 
@@ -140,7 +145,7 @@ def is_blocked(mission):
 
 
 def main():
-    # download_page()
+    download_page()
     parse_page()
 
     configFile = open(config_filename, 'rb')
