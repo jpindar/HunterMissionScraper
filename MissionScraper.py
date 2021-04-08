@@ -20,6 +20,22 @@ config_filename = r"E:\Dropbox\_PROJECTS\Python\scraping1\config.txt"
 
 mission_list = []
 block_list = []
+# This are the species listed in the wiki. It doesn't attempt to handle plurals etc. but that hasn't been necessary so far.
+region_list = [
+    ['Whitehart Island', 'Roosevelt Elk', 'Whitetail Deer', 'Blacktail Deer', 'Coyote', 'Bobcat', 'Turkey'],
+    ["Logger's Point" , 'Feral Hog', 'Mule Deer', 'Whitetail Deer', 'Coyote', 'Bobcat', 'Pheasant', 'Cottontail Rabbit'],
+    ['Settler Creeks', 'Roosevelt Elk', 'Black Bear', 'Feral Hog', 'Whitetail Deer', 'Bobcat', 'Turkey', 'Cottontail Rabbit'],
+    ['Redfeather Falls', 'Moose', 'Roosevelt Elk', 'Black Bear', 'Whitetail Deer', 'Blacktail Deer'],
+    ['Hirschfelden', 'Red Deer', 'Wild Boar', 'Roe Deer', 'Red Fox', 'Canada Goose','Pheasant'],
+    ['Hemmeldal', 'Moose','Brown Bear','Reindeer', 'Roe Deer', 'Red Fox', 'Eurasian Lynx', 'Willow Ptarmigan'],
+    ['Rougarou Bayou', 'Black Bear', 'Feral Hog', 'Whitetail Deer', 'Bobcat', 'Mallard', 'American Black Duck', 'Northern Pintail', 'Gadwall'],
+    ['Val des Bois', 'Brown Bear', 'Red Deer', 'Alpine Ibex', 'Roe Deer', 'Red Fox', 'European Rabbit', 'Rock Ptarmigan'],
+    ["Bushranger's Run",'Feral Hog','Red Kangaroo','Feral Goat','Red Fox', 'European Rabbit'],
+    ['Whiterime Ridge', 'Bison', 'Moose', 'Polar Bear', 'Sitka Deer', 'Dall Sheep', 'Arctic Fox', 'Snowshoe Hare', 'Snow Goose'],
+    ['Timbergold Trails', 'Rocky Mountain Elk', 'Grizzly Bear', 'Mule Deer', 'Grey Wolf', 'Puma', 'Bighorn Sheep', 'White-tailed Ptarmigan'],
+    ['Piccabeen Bay', 'Water Buffalo', 'Banteng', 'Sambar Deer', 'Rusa Deer', 'Feral Hog', 'Magpie Goose']
+    ]
+
 
 class Mission():
     def __init__(self, m):
@@ -27,8 +43,11 @@ class Mission():
         self.ignore = False
         self.species = []
         self.weapons = []
+        self.location = []
         self.scrape(m)
         self.format()
+        self.locate()
+        self.text = self.text + 'Location: ' + str(self.location) + '\n\n'
 
     def format(self):
         s = 'MISSION: ' + self.name + '\n'
@@ -49,8 +68,29 @@ class Mission():
             s += 'Reward:\n '
         for reward in self.rewards:
            s += "    " +  reward + '\n'
-        s += '\n\n'
         self.text = s
+
+    def locate(self):
+        # This does not handle the case where a region is mentioned by name, but not all of the mission needs to be done there
+        # but I am OK with that mission being classified as that region
+        # It also does not handle the case where multiple objectives have to be done in the same hunt, thus the mission must be
+        # done in the location that has all the species mentioned
+        self.location = []
+        for region in region_list:  #check region names first, that overrides other keywords
+            if (region[0] in self.text):
+                self.location.append(region[0])
+            if ' ' in region[0]:
+                keyword = region[0].replace(' ', '-')   # some mission descriptions say Val des Bois, some say Val-des-Bois
+                if (keyword in self.text):
+                    self.location.append(region[0])
+        if len(self.location) > 0:
+            return
+
+        for region in region_list:
+            for keyword in region:  # doesn't matter if we check region[0] again
+                if (keyword in self.text) and (not region[0] in self.location):
+                        self.location.append(region[0])
+
 
     def scrape(self, m):
         mission_row = m.select('div[class = "mission-row"]')
