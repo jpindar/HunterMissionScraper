@@ -71,10 +71,17 @@ class Mission():
         self.text = s
 
     def locate(self):
-        # This does not handle the case where a region is mentioned by name, but not all of the mission needs to be done there
+        # This does not handle some special cases.
+        # Like when a region is mentioned by name, but not all of the mission needs to be done there
         # but I am OK with that mission being classified as that region
         # It also does not handle the case where multiple objectives have to be done in the same hunt, thus the mission must be
-        # done in the location that has all the species mentioned
+        # done in the location that has all the species mentioned 
+        # Or cases where the required location is specified in a way other than by name or by species
+        # for the moment, I'm willing to hard code a few of these
+		if self.name == "Places To Remember":
+            self.location = ['Rougarou Bayou']
+            return
+
         self.location = []
         for region in region_list:  #check region names first, that overrides other keywords
             if (region[0] in self.text):
@@ -196,14 +203,23 @@ def main():
             block_list.append(y)
 
     active_missions = True
-    buffer  = "ACTIVE MISSIONS\n\n"
+
+    buffer = "\n\nAVALIABLE (NOT ACTIVATED) MISSIONS\n\n"
     for m in mission_list:
-        if active_missions and m.active == False:
-            buffer += "\n\nAVALIABLE MISSIONS\n\n"
-            active_missions = False
-        if not is_blocked(m):
-            buffer += m.text
-            buffer += "\n\n"
+        if m.active == False:
+            if not is_blocked(m):
+                buffer += m.text
+                buffer += "\n\n"
+
+    buffer  += "ACTIVE MISSIONS\n\n"
+    for r in region_list:
+       buffer  += "=====" + r[0] + "=====\n\n"
+       for m in mission_list:
+          if r[0] in m.location:
+              if m.active == True:
+                  if not is_blocked(m):
+                      buffer += m.text
+                      buffer += "\n\n"
 
     outputFile = open(output_filename, 'wb')
     outputFile.write(buffer.encode())
