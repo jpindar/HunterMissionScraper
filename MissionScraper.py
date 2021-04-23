@@ -75,10 +75,10 @@ class Mission():
         # Like when a region is mentioned by name, but not all of the mission needs to be done there
         # but I am OK with that mission being classified as that region
         # It also does not handle the case where multiple objectives have to be done in the same hunt, thus the mission must be
-        # done in the location that has all the species mentioned 
+        # done in the location that has all the species mentioned
         # Or cases where the required location is specified in a way other than by name or by species
         # for the moment, I'm willing to hard code a few of these
-		if self.name == "Places To Remember":
+        if self.name == "Places To Remember":
             self.location = ['Rougarou Bayou']
             return
 
