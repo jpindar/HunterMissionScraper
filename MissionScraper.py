@@ -13,7 +13,7 @@ import selenium.common.exceptions
 import bs4
 
 # r for raw means we don't have to escape the backslashes
-page_filename = r"E:\Dropbox\_PROJECTS\Python\scraping1\page.html"
+page_filename = r"E:\Dropbox\_PROJECTS\Python\scraping1\theHunter - Missions.htm"
 url = "https://www.thehunter.com"
 output_filename = r"E:\Dropbox\_PROJECTS\Python\scraping1\missions.txt"
 config_filename = r"E:\Dropbox\_PROJECTS\Python\scraping1\config.txt"
